@@ -1,19 +1,12 @@
 from SM4_table import *
 
 
-def to_binary(hexs):
-    return '{:0128b}'.format(int(hexs, 16))
 
-
-def to_hex(bins):
-    return '{:032X}'.format(int(bins, 2))
-
-
-def left_shift(string, num):  # 循环左移函数,string：字符串，num：左移位数，返回一个字符串
+def left_shift(string, num):
     return string[num:] + string[:num]
 
 
-def xor(a, b):  # 字符串异或函数，a,b:输入的字符串，返回一个字符串
+def xor(a, b):  
     result = ""
     for i in range(len(a)):
         temp = int(a[i], 2) ^ int(b[i], 2)
@@ -73,11 +66,6 @@ def SM4(plain, key, is_encode=True):
     for i in range(4):
         x.append(plain_bin[32 * i:32 * (i + 1)])
     round_keys = generate_key(key_bin)
-    # print("\nround key test:")
-    # i = 1
-    # for key in round_keys:
-    #     print('ROUND%d: ' % i + '{:08X}'.format(int(key, 2)))
-    #     i += 1
     if not is_encode:
         round_keys.reverse()
     for i in range(32):

@@ -3,6 +3,12 @@ import binascii
 
 
 def hex_xor(a, b):
+    """
+    32位16进制字符串的异或
+    :param a:字符串a
+    :param b: 字符串b
+    :return: 32位字符串异或结果
+    """
     bin_a = '{:0128b}'.format(int(a, 16))
     bin_b = '{:0128b}'.format(int(b, 16))
     bin_res = xor(bin_a, bin_b)
@@ -11,23 +17,34 @@ def hex_xor(a, b):
 
 
 def padding(text, block_size=16, is_encrypt=True):
+    """
+    PKCS #7 填充
+    :param text: 写入文本
+    :param block_size: 分块长度
+    :param is_encrypt: 是否为加密
+    :return: 返回填充或解填充的结果
+    """
     if is_encrypt:
         num = block_size - len(text) % block_size
         pad = (chr(num).encode('utf-8') * num)
         return text + pad
     else:
+        if len(text) % 16 != 0:
+            exit("The padding result is wrong. Check whether the padding is correct.")
         num = int(text[-2:], 16)
-        flag = 1
-        for i in range(1, num):
-            if int(text[(-(i + 1) * 2):(-i * 2)], 16) != num:
-                flag = 0
-                break
-        return text[:(len(text) - num * 2)] if flag == 1 else text
+        return text[:(len(text) - num * 2)]
 
 
 def ecb(file_name, block_size=16, key='0123456789abcdeffedcba9876543210', is_encrypt=True):
+    """
+    ecb加解密工作模式
+    :param file_name:文件名称
+    :param block_size: 分组大小
+    :param key: 密钥
+    :param is_encrypt:是否加密
+    :return: ecb加解密字符串
+    """
     result = ''
-    text_byte = ''
     with open(file_name, 'rb') as file:
         text_byte = file.read()
     if is_encrypt:
@@ -42,8 +59,15 @@ def ecb(file_name, block_size=16, key='0123456789abcdeffedcba9876543210', is_enc
 
 
 def cbc(file_name, block_size=16, IV='0123456789abcdeffedcba9876543210', key='0123456789abcdeffedcba9876543210'):
+    """
+    cbc加密工作模式
+    :param file_name:文件名称
+    :param block_size: 块大小
+    :param IV: 初始向量
+    :param key: 密钥
+    :return: cbc加密字符串
+    """
     result = ''
-    text_byte = ''
     with open(file_name, 'rb') as file:
         text_byte = file.read()
     text_byte = padding(text_byte)
@@ -60,8 +84,15 @@ def cbc(file_name, block_size=16, IV='0123456789abcdeffedcba9876543210', key='01
 
 
 def cbc_de(file_name, block_size=16, IV='0123456789abcdeffedcba9876543210', key='0123456789abcdeffedcba9876543210'):
+    """
+    cbc解密工作模式
+    :param file_name:文件名称
+    :param block_size: 块大小
+    :param IV: 初始向量
+    :param key: 密钥
+    :return: cbc解密后字符串
+    """
     result = ''
-    text_byte = ''
     with open(file_name, 'rb') as file:
         text_byte = file.read()
     lens = len(text_byte)
@@ -77,8 +108,15 @@ def cbc_de(file_name, block_size=16, IV='0123456789abcdeffedcba9876543210', key=
 
 
 def ctr(file_name, block_size=16, IV='0123456789abcdeffedcba9876543210', key='0123456789abcdeffedcba9876543210'):
+    """
+    ctr 工作模式
+    :param file_name: 文件名称
+    :param block_size: 块大小
+    :param IV: 初始向量
+    :param key: 密钥
+    :return: ctr加解密后字符串
+    """
     result = ''
-    text_byte = ''
     with open(file_name, 'rb') as file:
         text_byte = file.read()
     rounds = len(text_byte) // block_size
@@ -103,6 +141,15 @@ def ctr(file_name, block_size=16, IV='0123456789abcdeffedcba9876543210', key='01
 
 def cfb(file_name, block_size=32, IV='0123456789abcdeffedcba9876543210', key='0123456789abcdeffedcba9876543210',
         is_encode=True):
+    """
+    cfb 工作模式
+    :param file_name: 文件名称
+    :param block_size: 块大小
+    :param IV: 初始向量
+    :param key: 密钥
+    :param is_encode:是否加密
+    :return: cfb工作后结果
+    """
     result = ''
     text_byte = ''
     with open(file_name, 'rb') as file:
@@ -133,10 +180,16 @@ def cfb(file_name, block_size=32, IV='0123456789abcdeffedcba9876543210', key='01
     return result
 
 
-def ofb(file_name, block_size=32, IV='0123456789abcdeffedcba9876543210', key='0123456789abcdeffedcba9876543210',
-        is_encode=True):
+def ofb(file_name, block_size=32, IV='0123456789abcdeffedcba9876543210', key='0123456789abcdeffedcba9876543210'):
+    """
+    ofb 工作模式
+    :param file_name:文件名称
+    :param block_size: 块大小
+    :param IV: 初始向量
+    :param key: 密钥
+    :return: ofb加解密后结果
+    """
     result = ''
-    text_byte = ''
     with open(file_name, 'rb') as file:
         text_byte = file.read()
     rounds = len(text_byte) * 2 // block_size
@@ -165,37 +218,21 @@ def ofb(file_name, block_size=32, IV='0123456789abcdeffedcba9876543210', key='01
 def write_file(filename, text):
     with open(filename, 'wb') as f:
         f.write(binascii.a2b_hex(text.encode('utf-8')))
+    f.close()
+
+
+def main():
+    write_file('my_ecb', ecb('message'))
+    write_file('my_mes_ecb', ecb('cipher-ecb', is_encrypt=False))
+    write_file('my_cbc', cbc('message'))
+    write_file('my_mes_cbc', cbc_de('cipher-cbc'))
+    write_file('my_ctr', ctr('message'))
+    write_file('my_mes_ctr', ctr('cipher-ctr'))
+    write_file('my_cfb', cfb('message'))
+    write_file('my_mes_cfb', cfb('cipher-cfb', is_encode=False))
+    write_file('my_ofb', ofb('message'))
+    write_file('my_mes_ctr', ofb('cipher-ofb'))
 
 
 if __name__ == '__main__':
-    pl = 'message'
-    cipher = ecb(pl)
-    write_file('my_ecb', cipher)
-    de = 'cipher-ecb'
-    plain = ecb(de, is_encrypt=False)
-    write_file('my_mes_ecb', plain)
-    cipher = cbc(pl)
-    write_file('my_cbc', cipher)
-    de = 'cipher-cbc'
-    plain = cbc_de(de)
-    write_file('my_mes_cbc', plain)
-    cipher = ctr(pl)
-    write_file('my_ctr', cipher)
-    de = 'cipher-ctr'
-    plain = ctr(de)
-    write_file('my_mes_ctr', plain)
-    cipher = cfb(pl)
-    write_file('my_cfb', cipher)
-    de = 'cipher-cfb'
-    plain = cfb(de, is_encode=False)
-    write_file('my_mes_cfb', plain)
-    cipher = ofb(pl)
-    write_file('my_ofb', cipher)
-    de = 'cipher-ofb'
-    plain = ofb(de)
-    write_file('my_mes_ofb', plain)
-    file_name = 'SM4.py'
-    cipher = cfb(file_name)
-    write_file('my_sm', cipher)
-    plain = cfb('my_sm', is_encode=False)
-    write_file('sm', plain)
+    main()
